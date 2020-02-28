@@ -1,0 +1,56 @@
+/* body {
+  font: caption;
+} */
+
+.todo-item {
+  background: none;
+  padding: 0.5rem;
+  margin: 0;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.todo-item:nth-child(even) {
+  background: #f4f4ff;
+}
+
+.todo-item:hover {
+  background: #d8d8d8
+}
+
+
+.input-group-btn {
+  width: 100px
+}
+
+.input-group-addon {
+  width: 25vh
+}
+
+.form-group {
+  border-radius: 10px;
+  border: 1px solid #5755d9;
+  padding: 15px
+}
+
+.submit-button {
+  width: 50%
+}
+
+.margin-top {
+  margin-top: 2.5em !important;
+}
+
+@font-face {
+  font-family: "Libre Baskerville";
+  src: url("./LibreBaskerville-Regular.ttf");
+}
+@font-face {
+  font-family: "Libre Baskerville";
+  src: url("./LibreBaskerville-Italic.ttf");
+  font-style: italic;
+}
+
+.status {
+  font-family: 'Libre Baskerville', Georgia, Times, 'Times New Roman', serif;
+}

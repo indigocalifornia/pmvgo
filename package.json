@@ -1,0 +1,35 @@
+{
+  "name": "pmv-go",
+  "version": "0.1.0",
+  "description": "PMV Generator",
+  "author": "_",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "devtron": "^1.4.0",
+    "electron-builder": "^22.3.2",
+    "standard": "^12.0.1",
+    "electron": "^3.0.4"
+  },
+  "dependencies": {
+    "electron-reload": "^1.2.5",
+    "electron-store": "^2.0.0",
+    "ffmpeg-downloader": "^1.3.1",
+    "fluent-ffmpeg": "^2.1.2",
+    "rimraf": "^3.0.2",
+    "spectre.css": "^0.5.3",
+    "uuid": "^7.0.1"
+  },
+  "build": {
+    "appId": "appId",
+    "mac": {
+      "category": "macCategory"
+    },
+    "asar": false
+  }
+}
