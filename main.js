@@ -9,9 +9,9 @@ const ffmpeg = require('fluent-ffmpeg');
 const uuid = require('uuid');
 const rimraf = require('rimraf');
 
-require('electron-reload')(__dirname, {
-  electron: path.join(__dirname, 'node_modules', '.bin', 'electron')
-});
+// require('electron-reload')(__dirname, {
+//   electron: path.join(__dirname, 'node_modules', '.bin', 'electron')
+// });
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -29,7 +29,7 @@ class Window extends BrowserWindow {
     super({ ...defaultProps, ...windowSettings });
 
     this.loadFile(file);
-    this.webContents.openDevTools();
+    // this.webContents.openDevTools();
     this.once('ready-to-show', () => {
       this.show();
     });
@@ -48,7 +48,7 @@ function main() {
     const settings = store.get('settings');
     console.log('Loading settings', settings);
 
-    mainWindow.webContents.send('settings', store.get('settings') || {});
+    mainWindow.webContents.send('settings', settings || {});
   });
 
   ipcMain.on('process', (_, params) => {
@@ -413,7 +413,7 @@ function joinVideoAudio() {
   const workDir = store.get('workDir');
   const video = store.get('video');
   const audio = store.get('audio');
-  const offset = parseFloat(store.get('settings').offset);
+  const offset = -parseFloat(store.get('settings').offset);
 
   const saveFile = path.join(workDir, 'all_final.mp4');
   store.set('finalFile', saveFile);

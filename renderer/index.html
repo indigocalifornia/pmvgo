@@ -132,7 +132,7 @@
                   </label>
                 </div>
                 <div class="col-2">
-                  <input class="form-input" type="number" id="offset" name="offset">
+                  <input class="form-input" type="number" step="0.01" id="offset" name="offset">
                 </div>
               </div>
             </div>
@@ -179,7 +179,7 @@
 
 <script src="./index.js"></script>
 
-<script>
+<!-- <script>
   const { remote } = require('electron')
   const { Menu, MenuItem } = remote
 
@@ -195,6 +195,6 @@
     rightClickPosition = { x: e.x, y: e.y }
     menu.popup({ window: remote.getCurrentWindow() })
   }, false)
-</script>
+</script> -->
 
 </html>
