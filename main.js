@@ -178,7 +178,7 @@ function copyAudio() {
     .on('progress', (progress) => {
       console.log(`Processing: ${progress.percent}% done`);
       mainWindow.webContents.send(
-        'secondaryStatus', `Progress: ${progress.percent.toFixed(3)}%`
+        'secondaryStatus', `Progress: ${progress.percent ? progress.percent.toFixed(3) : null}%`
       );
     })
     .on('end', () => {
@@ -253,7 +253,7 @@ function segmentsForFile(position) {
     .on('progress', (progress) => {
       console.log(`Processing: ${progress.percent}% done`);
       mainWindow.webContents.send(
-        'secondaryStatus', `Progress: ${progress.percent.toFixed(3)}%`
+        'secondaryStatus', `Progress: ${progress.percent ? progress.percent.toFixed(3) : null}%`
       );
     })
     .on('end', () => {
@@ -433,7 +433,7 @@ function joinVideoAudio() {
     .on('progress', (progress) => {
       console.log(`Processing: ${progress.percent}% done`);
       mainWindow.webContents.send(
-        'secondaryStatus', `Progress: ${progress.percent.toFixed(3)}%`
+        'secondaryStatus', `Progress: ${progress.percent ? progress.percent.toFixed(3) : null}%`
       );
     })
     .on('end', () => {
@@ -468,7 +468,7 @@ function encode() {
     .on('progress', (progress) => {
       console.log(`Processing: ${progress.percent}% done`);
       mainWindow.webContents.send(
-        'secondaryStatus', `Progress: ${progress.percent.toFixed(3)}%`
+        'secondaryStatus', `Progress: ${progress.percent ? progress.percent.toFixed(3) : null}%`
       );
     })
     .on('end', () => {
