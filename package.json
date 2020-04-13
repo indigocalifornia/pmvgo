@@ -1,7 +1,7 @@
 {
-  "name": "pmv-go",
+  "name": "pmvgo",
   "version": "0.1.0",
-  "description": "PMV Generator",
+  "description": "pmvgo",
   "author": "_",
   "main": "main.js",
   "scripts": {
