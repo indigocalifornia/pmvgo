@@ -178,7 +178,8 @@ function copyAudio() {
     .on('progress', (progress) => {
       console.log(`Processing: ${progress.percent}% done`);
       mainWindow.webContents.send(
-        'secondaryStatus', `Progress: ${progress.percent ? progress.percent.toFixed(3) : null}%`
+        'secondaryStatus',
+        `Progress: ${progress.percent ? progress.percent.toFixed(3) : null}%`
       );
     })
     .on('end', () => {
@@ -204,81 +205,10 @@ function processAudio() {
   }
   store.set('beats', beats);
 
-  // makeSegments();
-
   makeRandom();
 }
 
-
-function makeSegments() {
-  segmentsForFile(0);
-}
-
-function segmentsForFile(position) {
-  const sourceFiles = store.get('sourceFiles');
-
-  if (position >= sourceFiles.length) {
-    console.log('FINISHED SEGMENTS');
-    makeRandom();
-    return;
-  }
-
-  mainWindow.webContents.send(
-    'primaryStatus',
-    `Processing video files ${position + 1}/${sourceFiles.length}`
-  );
-
-  const segmentsDir = store.get('segmentsDir');
-
-  const file = sourceFiles[position];
-  const ext = path.extname(file);
-  // remove bad characters from file name
-  const name = path.basename(file, ext).replace(/[/\\?%*:|"<>'"]/g, '-');
-  const outFile = path.join(segmentsDir, name);
-
-  command = ffmpeg(file)
-    .inputOptions('-y')
-    .audioCodec('copy')
-    .videoCodec('copy')
-    .outputOptions(
-      // todo: variable segment length
-      ['-f', 'segment', '-segment_time', '4', '-reset_timestamps', '1',
-        '-map', '0'
-      ])
-    .on('error', (err) => {
-      console.log(`An error occurred: ${err.message}`);
-      if (err.message == 'ffmpeg was killed with signal SIGKILL') {
-        return;
-      }
-      segmentsForFile(position + 1);
-    })
-    .on('progress', (progress) => {
-      console.log(`Processing: ${progress.percent}% done`);
-      mainWindow.webContents.send(
-        'secondaryStatus', `Progress: ${progress.percent ? progress.percent.toFixed(3) : null}%`
-      );
-    })
-    .on('end', () => {
-      segmentsForFile(position + 1);
-    })
-    .save(`${outFile}_%d${ext}`);
-}
-
 function makeRandom() {
-  // const segmentsDir = store.get('segmentsDir');
-  // const segments = fs.readdirSync(segmentsDir)
-  //   .map(item => path.join(segmentsDir, item));
-
-  // const beats = store.get('beats');
-
-  // var sampledSegments = [];
-  // for (var i = 0; i <= beats.length + 1; i++) {
-  //   var s = segments[Math.floor(Math.random() * segments.length)];
-  //   sampledSegments.push(s);
-  // }
-
-  // store.set('segments', sampledSegments);
-
   randomForFile(0, 0);
 }
 
@@ -301,7 +231,6 @@ function randomForFile(position, totalDuration) {
     `Generating compilation ${position + 1}/${beats.length - 1}`
   );
 
-  // const file = segments[position];
   const file = sourceFiles[Math.floor(Math.random() * sourceFiles.length)];
 
   const diff = beats[position + 1] - totalDuration;
@@ -311,20 +240,16 @@ function randomForFile(position, totalDuration) {
     return;
   }
 
-  // const name = position + '_' + path.basename(file);
-
   var name = modifyFilename(file);
   name = position + '_' + name;
 
   const saveFile = path.join(randomDir, name);
 
-  console.log('in file', file, 'out file', saveFile)
-
   ffmpeg.ffprobe(file, function(err, metadata) {
       const duration = metadata.format.duration;
       const start = randomBetween(0, duration);
 
-      console.log('start', start)
+      console.log('start', start);
 
       command = ffmpeg(file)
         .noAudio()
@@ -453,7 +378,8 @@ function joinVideoAudio() {
     .on('progress', (progress) => {
       console.log(`Processing: ${progress.percent}% done`);
       mainWindow.webContents.send(
-        'secondaryStatus', `Progress: ${progress.percent ? progress.percent.toFixed(3) : null}%`
+        'secondaryStatus',
+        `Progress: ${progress.percent ? progress.percent.toFixed(3) : null}%`
       );
     })
     .on('end', () => {
@@ -488,7 +414,8 @@ function encode() {
     .on('progress', (progress) => {
       console.log(`Processing: ${progress.percent}% done`);
       mainWindow.webContents.send(
-        'secondaryStatus', `Progress: ${progress.percent ? progress.percent.toFixed(3) : null}%`
+        'secondaryStatus',
+        `Progress: ${progress.percent ? progress.percent.toFixed(3) : null}%`
       );
     })
     .on('end', () => {
