@@ -205,6 +205,13 @@ function processAudio() {
   }
   store.set('beats', beats);
 
+  console.log(
+    'beats',
+    beats.slice(0, 10),
+    beats.slice(beats.length - 10, beats.length - 1),
+    beats.length
+  );
+
   makeRandom();
 }
 
