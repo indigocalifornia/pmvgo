@@ -204,7 +204,9 @@ function processAudio() {
   }
   store.set('beats', beats);
 
-  makeSegments();
+  // makeSegments();
+
+  makeRandom();
 }
 
 
@@ -263,19 +265,19 @@ function segmentsForFile(position) {
 }
 
 function makeRandom() {
-  const segmentsDir = store.get('segmentsDir');
-  const beats = store.get('beats');
+  // const segmentsDir = store.get('segmentsDir');
+  // const segments = fs.readdirSync(segmentsDir)
+  //   .map(item => path.join(segmentsDir, item));
 
-  const segments = fs.readdirSync(segmentsDir)
-    .map(item => path.join(segmentsDir, item));
+  // const beats = store.get('beats');
 
-  var sampledSegments = [];
-  for (var i = 0; i <= beats.length + 1; i++) {
-    var s = segments[Math.floor(Math.random() * segments.length)];
-    sampledSegments.push(s);
-  }
+  // var sampledSegments = [];
+  // for (var i = 0; i <= beats.length + 1; i++) {
+  //   var s = segments[Math.floor(Math.random() * segments.length)];
+  //   sampledSegments.push(s);
+  // }
 
-  store.set('segments', sampledSegments);
+  // store.set('segments', sampledSegments);
 
   randomForFile(0, 0);
 }
@@ -284,6 +286,8 @@ function randomForFile(position, totalDuration) {
   const randomDir = store.get('randomDir');
   const segments = store.get('segments');
   const beats = store.get('beats');
+
+  const sourceFiles = store.get('sourceFiles');
 
   if (position >= beats.length - 1) {
     console.log('FINISHED RANDOMS');
@@ -297,7 +301,9 @@ function randomForFile(position, totalDuration) {
     `Generating compilation ${position + 1}/${beats.length - 1}`
   );
 
-  const file = segments[position];
+  // const file = segments[position];
+  const file = sourceFiles[Math.floor(Math.random() * sourceFiles.length)];
+
   const diff = beats[position + 1] - totalDuration;
 
   if (diff <= 0) {
@@ -305,49 +311,63 @@ function randomForFile(position, totalDuration) {
     return;
   }
 
-  const name = position + '_' + path.basename(file);
+  // const name = position + '_' + path.basename(file);
+
+  var name = modifyFilename(file);
+  name = position + '_' + name;
+
   const saveFile = path.join(randomDir, name);
 
-  command = ffmpeg(file)
-    .noAudio()
-    .duration(diff)
-    .videoBitrate(5000000)
-    .outputOptions(
-      [
-        '-mbd', 'rd', '-trellis', '2', '-cmp', '2', '-subcmp', '2',
-        '-g', '100', '-f', 'mpeg'
-      ]
-    )
-    .on('error', (err) => {
-      console.log(`An error occurred: ${err}`);
-      if (err.message == 'ffmpeg was killed with signal SIGKILL') {
-        return;
-      }
-      randomForFile(position + 1, totalDuration);
-    })
-    .on('progress', (progress) => {
-      console.log(`Processing: ${progress.percent}% done`);
-      mainWindow.webContents.send('secondaryStatus', '<br>');
-    })
-    .on('end', () => {
-      ffmpeg.ffprobe(saveFile, function (err, metadata) {
-        let newDuration = 0;
+  console.log('in file', file, 'out file', saveFile)
 
-        if (err) {
-          console.log(err);
-          return;
-        }
-        else if (metadata.format.duration <= 0) {
-          fs.unlinkSync(saveFile);
-        } else {
-          newDuration = metadata.format.duration;
-        }
+  ffmpeg.ffprobe(file, function(err, metadata) {
+      const duration = metadata.format.duration;
+      const start = randomBetween(0, duration);
 
-        // todo: dont increase diff if output is bad
-        randomForFile(position + 1, totalDuration + newDuration);
-      });
-    })
-    .save(saveFile);
+      console.log('start', start)
+
+      command = ffmpeg(file)
+        .noAudio()
+        .seekInput(start)
+        .duration(diff)
+        .videoBitrate(5000000)
+        .outputOptions(
+          [
+            '-mbd', 'rd', '-trellis', '2', '-cmp', '2', '-subcmp', '2',
+            '-g', '100', '-f', 'mpeg'
+          ]
+        )
+        .on('error', (err) => {
+          console.log(`An error occurred: ${err}`);
+          if (err.message == 'ffmpeg was killed with signal SIGKILL') {
+            return;
+          }
+          randomForFile(position + 1, totalDuration);
+        })
+        .on('progress', (progress) => {
+          console.log(`Processing: ${progress.percent}% done`);
+          mainWindow.webContents.send('secondaryStatus', '<br>');
+        })
+        .on('end', () => {
+          ffmpeg.ffprobe(saveFile, function (err, metadata) {
+            let newDuration = 0;
+
+            if (err) {
+              console.log(err);
+              return;
+            }
+            else if (metadata.format.duration <= 0) {
+              fs.unlinkSync(saveFile);
+            } else {
+              newDuration = metadata.format.duration;
+            }
+
+            // todo: dont increase diff if output is bad
+            randomForFile(position + 1, totalDuration + newDuration);
+          });
+        })
+        .save(saveFile);
+  });
 }
 
 function makeJoinFile() {
@@ -487,4 +507,16 @@ function end() {
   mainWindow.webContents.send('primaryStatus', 'Complete!');
   mainWindow.webContents.send('secondaryStatus', '<br>');
   mainWindow.webContents.send('done', finalFile);
+}
+
+function modifyFilename(file) {
+  const ext = path.extname(file);
+  // remove bad characters from file name
+  const name = path.basename(file, ext).replace(/[/\\?%*:|"<>'"]/g, '-');
+
+  return `${name}${ext}`;
+}
+
+function randomBetween(min, max) {
+  return Math.random() * (+max - +min) + +min;
 }
