@@ -1,185 +1,217 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>pmvgo</title>
+    <link
+      rel="stylesheet"
+      href="../node_modules/spectre.css/dist/spectre.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="../node_modules/spectre.css/dist/spectre-icons.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <title>pmvgo</title>
-  <link rel="stylesheet" href="../node_modules/spectre.css/dist/spectre.min.css">
-  <link rel="stylesheet" href="../node_modules/spectre.css/dist/spectre-icons.min.css">
-  <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-  <div class="container">
-    <h1 class="text-center">pmvgo</h1>
-    <form id="form">
-      <div class="columns">
-
-        <div class="column col-6">
-
-          <div class="column col-12 mb-2">
-            <div class="form-group">
-              <div class="column col-12">
-                <label class="form-label">
-                  Choose source directory.<br>
-                  <small>Videos in this directory will be used as parts
-                    of the compilation. Don't keep anything other than video files in
-                    this folder.
-                  </small>
-                </label>
-              </div>
-              <div class="col-12">
-                <div class="input-group">
-                  <button id="source-dir-button" type="button" class="btn btn-primary input-group-btn">
-                    Browse
-                  </button>
-                  <input id="sourceDir" type="text" class="form-input" name="sourceDir">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="column col-12 mb-2">
-            <div class="form-group">
-              <div class="col-12">
-                <label class="form-label">
-                  Choose temporary directory.<br>
-                  <small>This folder will be used for temporary storage.
-                  </small>
-                </label>
-              </div>
-              <div class="col-12">
-                <div class="input-group">
-                  <button id="temp-dir-button" type="button" class="btn btn-primary input-group-btn">
-                    Browse
-                  </button>
-                  <input id="tempDir" type="text" class="form-input" name="tempDir">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="column col-12 mb-2">
-            <div class="form-group">
-              <div class="col-12">
-                <label class="form-label">
-                  Choose audio.<br>
-                  <small>Audio file used for the compilation.
-                  </small>
-                </label>
-              </div>
-              <div class="col-12">
-                <div class="input-group">
-                  <button id="audio-button" type="button" class="btn btn-primary input-group-btn">
-                    Browse
-                  </button>
-                  <input id="audio" type="text" class="form-input" name="audio">
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <div class="column col-6">
-
-          <div class="column col-12 ">
-            <div class="form-horizontal p-0 mb-2">
+  <body>
+    <div class="container">
+      <h1 class="text-center">pmvgo</h1>
+      <form id="form">
+        <div class="columns">
+          <div class="column col-6">
+            <div class="column col-12 mb-2">
               <div class="form-group">
-                <div class="col-10">
+                <div class="column col-12">
                   <label class="form-label">
-                    Audio BPM<br>
-                    <small>Audio bpm is used to establish when the scenes are supposed to
-                      be alternated.
+                    Choose source directory.<br />
+                    <small
+                      >Videos in this directory will be used as parts of the
+                      compilation. Don't keep anything other than video files in
+                      this folder.
                     </small>
                   </label>
                 </div>
-                <div class="col-2">
-                  <input class="form-input" type="number" step="1" id="bpm" name="bpm">
+                <div class="col-12">
+                  <div class="input-group">
+                    <button
+                      id="source-dir-button"
+                      type="button"
+                      class="btn btn-primary input-group-btn"
+                    >
+                      Browse
+                    </button>
+                    <input
+                      id="sourceDir"
+                      type="text"
+                      class="form-input"
+                      name="sourceDir"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="column col-12 ">
-            <div class="form-horizontal p-0 mb-2">
+            <div class="column col-12 mb-2">
               <div class="form-group">
-                <div class="col-10">
+                <div class="col-12">
                   <label class="form-label">
-                    Scene duration<br>
-                    <small>Number of beats to wait before alterting a scene, e.g. if this number
-                      is 4, then scenes will alternate every four beats. The higher the number, the
-                      slower the video will feel. For best experience, use a multiple of 2.
+                    Choose temporary directory.<br />
+                    <small
+                      >This folder will be used for temporary storage.
                     </small>
                   </label>
                 </div>
-                <div class="col-2">
-                  <input class="form-input" type="number" step="1" id="duration" name="duration">
+                <div class="col-12">
+                  <div class="input-group">
+                    <button
+                      id="temp-dir-button"
+                      type="button"
+                      class="btn btn-primary input-group-btn"
+                    >
+                      Browse
+                    </button>
+                    <input
+                      id="tempDir"
+                      type="text"
+                      class="form-input"
+                      name="tempDir"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="column col-12 ">
-            <div class="form-horizontal p-0 mb-2">
+            <div class="column col-12 mb-2">
               <div class="form-group">
-                <div class="col-10">
+                <div class="col-12">
                   <label class="form-label">
-                    Audio offset<br>
-                    <small>If the end result doesn't align with the audio beats precisely, you
-                      can go back and use this to sync audio to the video. Input as seconds.
-                    </small>
+                    Choose audio.<br />
+                    <small>Audio file used for the compilation. </small>
                   </label>
                 </div>
-                <div class="col-2">
-                  <input class="form-input" type="number" step="0.01" id="offset" name="offset">
+                <div class="col-12">
+                  <div class="input-group">
+                    <button
+                      id="audio-button"
+                      type="button"
+                      class="btn btn-primary input-group-btn"
+                    >
+                      Browse
+                    </button>
+                    <input
+                      id="audio"
+                      type="text"
+                      class="form-input"
+                      name="audio"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
+          <div class="column col-6">
+            <div class="column col-12">
+              <div class="form-horizontal p-0 mb-2">
+                <div class="form-group">
+                  <div class="col-10">
+                    <label class="form-label">
+                      Audio BPM<br />
+                      <small
+                        >Audio bpm is used to establish when the scenes are
+                        supposed to be alternated.
+                      </small>
+                    </label>
+                  </div>
+                  <div class="col-2">
+                    <input
+                      class="form-input"
+                      type="number"
+                      step="1"
+                      id="bpm"
+                      name="bpm"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
 
-        <div class="column col-12 text-center mt-2">
-          <button class="btn btn-primary submit-button" type="submit" id="submit-button">
-            Submit
-          </button>
-        </div>
-
-        <div class="column col-12 text-center margin-top">
-          <div id="status" class="status">
-            <h4 id="primaryStatus"></h4>
-            <h5 id="secondaryStatus" style="font-style: italic"><br></h5>
+            <div class="column col-12">
+              <div class="form-horizontal p-0 mb-2">
+                <div class="form-group">
+                  <div class="col-10">
+                    <label class="form-label">
+                      Scene duration<br />
+                      <small
+                        >Number of beats to wait before alterting a scene, e.g.
+                        if this number is 4, then scenes will alternate every
+                        four beats. The higher the number, the slower the video
+                        will feel. For best experience, use a multiple of 2.
+                      </small>
+                    </label>
+                  </div>
+                  <div class="col-2">
+                    <input
+                      class="form-input"
+                      type="number"
+                      step="1"
+                      id="duration"
+                      name="duration"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div id="openSave" class="mt-2" style="display:none">
-            <button id="open" class="btn mx-2" type="button">
-              <i class="icon icon-photo"></i> Open
-            </button>
-            <button id="save" class="btn mx-2" type="button">
-              <i class="icon icon-download"></i> Save
-            </button>
-            <button id="delete" class="btn mx-2" type="button">
-              <i class="icon icon-delete"></i> Delete files
+          <div class="column col-12 text-center mt-2">
+            <button
+              class="btn btn-primary submit-button"
+              type="submit"
+              id="submit-button"
+            >
+              Submit
             </button>
           </div>
 
-          <div class="mt-2">
-            <button id="cancel" class="btn btn-error" type="button" style="display:none">
-              Cancel
-            </button>
+          <div class="column col-12 text-center margin-top">
+            <div id="status" class="status">
+              <h4 id="primaryStatus"></h4>
+              <h5 id="secondaryStatus" style="font-style: italic;"><br /></h5>
+            </div>
+
+            <div id="openSave" class="mt-2" style="display: none;">
+              <button id="open" class="btn mx-2" type="button">
+                <i class="icon icon-photo"></i> Open
+              </button>
+              <button id="save" class="btn mx-2" type="button">
+                <i class="icon icon-download"></i> Save
+              </button>
+              <button id="delete" class="btn mx-2" type="button">
+                <i class="icon icon-delete"></i> Delete files
+              </button>
+            </div>
+
+            <div class="mt-2">
+              <button
+                id="cancel"
+                class="btn btn-error"
+                type="button"
+                style="display: none;"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
+      </form>
+    </div>
+  </body>
 
-      </div>
+  <script src="./index.js"></script>
 
-    </form>
-  </div>
-</body>
-
-<script src="./index.js"></script>
-
-<!-- <script>
+  <!-- <script>
   const { remote } = require('electron')
   const { Menu, MenuItem } = remote
 
@@ -196,5 +228,4 @@
     menu.popup({ window: remote.getCurrentWindow() })
   }, false)
 </script> -->
-
 </html>

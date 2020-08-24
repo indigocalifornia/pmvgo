@@ -52,9 +52,9 @@ function main() {
   });
 
   ipcMain.on('process', (_, params) => {
-    const settings = Object.assign({}, );
+    const settings = Object.assign({},);
 
-    const paramsToSettings = Object.keys(params).reduce(function(obj, k) {
+    const paramsToSettings = Object.keys(params).reduce(function (obj, k) {
       if (params[k]) {
         obj[k] = params[k];
       }
@@ -252,53 +252,56 @@ function randomForFile(position, totalDuration) {
 
   const saveFile = path.join(randomDir, name);
 
-  ffmpeg.ffprobe(file, function(err, metadata) {
-      const duration = metadata.format.duration;
-      const start = randomBetween(0, duration);
+  ffmpeg.ffprobe(file, function (err, metadata) {
+    const duration = metadata.format.duration;
+    const start = randomBetween(0, duration);
 
-      console.log('start', start);
+    console.log('start', start, file, saveFile);
 
-      command = ffmpeg(file)
-        .noAudio()
-        .seekInput(start)
-        .duration(diff)
-        .videoBitrate(5000000)
-        .outputOptions(
-          [
-            '-mbd', 'rd', '-trellis', '2', '-cmp', '2', '-subcmp', '2',
-            '-g', '100', '-f', 'mpeg'
-          ]
-        )
-        .on('error', (err) => {
-          console.log(`An error occurred: ${err}`);
-          if (err.message == 'ffmpeg was killed with signal SIGKILL') {
+    command = ffmpeg(file)
+      .noAudio()
+      .seekInput(start)
+      .duration(diff)
+      .videoBitrate(5000000)
+      .outputOptions(
+        [
+          '-mbd', 'rd', '-trellis', '2', '-cmp', '2', '-subcmp', '2',
+          '-g', '100', '-f', 'mpeg'
+        ]
+      )
+      .on('error', (err) => {
+        console.log(`An error occurred: ${err}`);
+        if (err.message == 'ffmpeg was killed with signal SIGKILL') {
+          return;
+        }
+        fs.unlinkSync(saveFile);
+        randomForFile(position + 1, totalDuration);
+      })
+      .on('progress', (progress) => {
+        console.log(`Processing: ${progress.percent}% done`);
+        mainWindow.webContents.send('secondaryStatus', '<br>');
+      })
+      .on('end', () => {
+        ffmpeg.ffprobe(saveFile, function (err, metadata) {
+          console.log('Analyzing', saveFile, metadata.format.size, metadata.format.duration);
+
+          let newDuration = 0;
+
+          if (err) {
+            console.log(err);
             return;
           }
-          randomForFile(position + 1, totalDuration);
-        })
-        .on('progress', (progress) => {
-          console.log(`Processing: ${progress.percent}% done`);
-          mainWindow.webContents.send('secondaryStatus', '<br>');
-        })
-        .on('end', () => {
-          ffmpeg.ffprobe(saveFile, function (err, metadata) {
-            let newDuration = 0;
+          else if (metadata.format.duration <= 0) {
+            fs.unlinkSync(saveFile);
+          } else {
+            newDuration = metadata.format.duration;
+          }
 
-            if (err) {
-              console.log(err);
-              return;
-            }
-            else if (metadata.format.duration <= 0) {
-              fs.unlinkSync(saveFile);
-            } else {
-              newDuration = metadata.format.duration;
-            }
-
-            // todo: dont increase diff if output is bad
-            randomForFile(position + 1, totalDuration + newDuration);
-          });
-        })
-        .save(saveFile);
+          // todo: dont increase diff if output is bad
+          randomForFile(position + 1, totalDuration + newDuration);
+        });
+      })
+      .save(saveFile);
   });
 }
 
@@ -365,14 +368,12 @@ function joinVideoAudio() {
   const workDir = store.get('workDir');
   const video = store.get('video');
   const audio = store.get('audio');
-  const offset = -parseFloat(store.get('settings').offset);
 
   const saveFile = path.join(workDir, 'all_final.mp4');
   store.set('finalFile', saveFile);
 
   command = ffmpeg(video)
     .addInput(audio)
-    .inputOptions(['-itsoffset', offset])
     .audioCodec('copy')
     .videoCodec('copy')
     .outputOption('-shortest')
@@ -445,8 +446,10 @@ function end() {
 
 function modifyFilename(file) {
   const ext = path.extname(file);
-  // remove bad characters from file name
-  const name = path.basename(file, ext).replace(/[/\\?%*:|"<>'"]/g, '-');
+  // remove bad characters and non ascii from file name
+  const name = path.basename(file, ext)
+    .replace(/[/\\?%*:|"<>'"]/g, '-')
+    .replace(/[^\x00-\x7F]/g, '-');
 
   return `${name}${ext}`;
 }
