@@ -12,26 +12,38 @@ const { mainReloader, rendererReloader } = require('electron-hot-reload');
 
 // const { preProcess } = require('./process/preprocess');
 
+// let ffmpegPath;
+// if (process.env.NODE_ENV === 'development') {
+//   ffmpegPath = path.join(
+//     path.join(__dirname, 'ffmpeg-binaries', 'win32', 'x64'),
+//     'ffmpeg'
+//   );
+// } else {
+//   ffmpegPath = path.join(process.resourcesPath, 'bin', 'ffmpeg');
+// }
+
+// console.log(ffmpegPath);
+
 ffmpeg.setFfmpegPath(ffmpegPath);
 const defaultProps = {
-  width: 1200,
-  height: 800,
+  width: 1300,
+  height: 900,
   show: false,
   webPreferences: {
     nodeIntegration: true,
   }
 };
 
-const mainFile = path.join(app.getAppPath(), 'main.js');
-const rendererFile = path.join(app.getAppPath(), 'renderer', 'index.js');
+// const mainFile = path.join(app.getAppPath(), 'main.js');
+// const rendererFile = path.join(app.getAppPath(), 'renderer', 'index.js');
 
-mainReloader([mainFile], undefined, (error, path) => {
-  console.log("It is a main's process hook!");
-});
+// mainReloader([mainFile], undefined, (error, path) => {
+//   console.log("It is a main's process hook!");
+// });
 
-rendererReloader([rendererFile], undefined, (error, path) => {
-  console.log("It is a renderer's process hook!");
-});
+// rendererReloader([rendererFile], undefined, (error, path) => {
+//   console.log("It is a renderer's process hook!");
+// });
 
 class Window extends BrowserWindow {
   constructor({ file, ...windowSettings }) {
@@ -46,7 +58,7 @@ class Window extends BrowserWindow {
 }
 
 const store = new Store();
-let mainWindow, command, timestamp, retryFunction;
+let mainWindow, command, timestamp, retryFunction, eta;
 
 function main() {
   mainWindow = new Window({
@@ -238,6 +250,8 @@ function processAudio() {
 }
 
 function makeRandom() {
+  eta = new ETA();
+
   randomForFile(0, 0);
 }
 
@@ -256,6 +270,7 @@ function randomForFile(position, totalDuration) {
   }
 
   const elapsed = Math.round((Date.now() - timestamp) / 1000);
+  const left = Math.round(eta.eta(position + 1, beats.length - 1) / 1000);
 
   mainWindow.webContents.send(
     'primaryStatus',
@@ -264,7 +279,7 @@ function randomForFile(position, totalDuration) {
 
   mainWindow.webContents.send(
     'secondaryStatus',
-    `Time elapsed ${elapsed}s`
+    `Time left ${left}s`
   );
 
   const file = sourceFiles[Math.floor(Math.random() * sourceFiles.length)];
@@ -493,3 +508,17 @@ function randomBetween(min, max) {
   return Math.random() * (+max - +min) + +min;
 }
 
+class ETA {
+  eta(currentIter, totalIter) {
+    if (!this.start) {
+      this.start = Date.now();
+    }
+
+    const timeTaken = Date.now() - this.start;
+    const timePerIter = timeTaken / currentIter;
+    const iterLeft = totalIter - currentIter;
+    const timeLeft = iterLeft * timePerIter;
+
+    return timeLeft;
+  }
+}

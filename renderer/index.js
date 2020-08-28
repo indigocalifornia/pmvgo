@@ -5,17 +5,17 @@ const { dialog } = require('electron').remote;
 const uuid = require('uuid');
 
 document.getElementById('source-dir-button').addEventListener('click', () => {
-  const sourceDir = dialog.showOpenDialog({ properties: ["openDirectory"] })[0];
+  const sourceDir = dialog.showOpenDialog({ properties: ["openDirectory", "dontAddToRecent"] })[0];
   document.getElementById('sourceDir').value = sourceDir;
 });
 
 document.getElementById('temp-dir-button').addEventListener('click', () => {
-  const tempDir = dialog.showOpenDialog({ properties: ["openDirectory"] })[0];
+  const tempDir = dialog.showOpenDialog({ properties: ["openDirectory", "dontAddToRecent"] })[0];
   document.getElementById('tempDir').value = tempDir;
 });
 
 document.getElementById('audio-button').addEventListener('click', () => {
-  const audio = dialog.showOpenDialog();
+  const audio = dialog.showOpenDialog({ properties: ["dontAddToRecent"] });
   if (audio) {
     document.getElementById('audio').value = audio;
   }
@@ -69,10 +69,10 @@ document.getElementById('save').addEventListener('click', () => {
   }
 });
 
-document.getElementById('delete').addEventListener('click', () => {
-  document.getElementById('openSave').style.display = 'none';
-  ipcRenderer.send('delete');
-});
+// document.getElementById('delete').addEventListener('click', () => {
+//   document.getElementById('openSave').style.display = 'none';
+//   ipcRenderer.send('delete');
+// });
 
 document.getElementById('retry-button').addEventListener('click', () => {
   document.getElementById('retry-button').style.display = 'none';
