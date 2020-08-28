@@ -32,9 +32,11 @@
     "mac": {
       "category": "macCategory"
     },
-    "asar": true,
-    "extraResources": [
-      "./bin/**"
+    "asar": false,
+    "files": [
+      "build",
+      "renderer",
+      "*"
     ]
   }
 }
