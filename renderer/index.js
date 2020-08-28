@@ -5,12 +5,12 @@ const { dialog } = require('electron').remote;
 const uuid = require('uuid');
 
 document.getElementById('source-dir-button').addEventListener('click', () => {
-  const sourceDir = dialog.showOpenDialog({properties:["openDirectory"]})[0];
+  const sourceDir = dialog.showOpenDialog({ properties: ["openDirectory"] })[0];
   document.getElementById('sourceDir').value = sourceDir;
 });
 
 document.getElementById('temp-dir-button').addEventListener('click', () => {
-  const tempDir = dialog.showOpenDialog({properties:["openDirectory"]})[0];
+  const tempDir = dialog.showOpenDialog({ properties: ["openDirectory"] })[0];
   document.getElementById('tempDir').value = tempDir;
 });
 
@@ -30,7 +30,6 @@ document.getElementById('form').addEventListener('submit', (e) => {
     audio: e.target.audio.value,
     bpm: e.target.bpm.value,
     duration: e.target.duration.value,
-    offset: e.target.offset.value
   };
 
   if (Object.values(params).some(i => !i || '')) {
@@ -75,13 +74,18 @@ document.getElementById('delete').addEventListener('click', () => {
   ipcRenderer.send('delete');
 });
 
+document.getElementById('retry-button').addEventListener('click', () => {
+  document.getElementById('retry-button').style.display = 'none';
+
+  ipcRenderer.send('retry');
+});
+
 ipcRenderer.on('settings', (_, settings) => {
   document.getElementById('sourceDir').value = settings.sourceDir || "";
   document.getElementById('tempDir').value = settings.tempDir || "";
   document.getElementById('audio').value = settings.audio || "";
   document.getElementById('bpm').value = settings.bpm || "";
   document.getElementById('duration').value = settings.duration || "";
-  document.getElementById('offset').value = settings.offset || "";
 });
 
 ipcRenderer.on('primaryStatus', (_, text) => {
@@ -96,3 +100,9 @@ ipcRenderer.on('done', () => {
   document.getElementById('cancel').style.display = 'none';
   document.getElementById('openSave').style.display = 'block';
 });
+
+ipcRenderer.on('showRetry', () => {
+  document.getElementById('retry-button').style.display = 'inline';
+});
+
+

@@ -1,5 +1,7 @@
 'use strict';
 
+
+
 const path = require('path');
 const { app, ipcMain, shell, BrowserWindow } = require('electron');
 const Store = require('electron-store');
@@ -8,21 +10,30 @@ const ffmpegPath = require('ffmpeg-downloader').path;
 const ffmpeg = require('fluent-ffmpeg');
 const uuid = require('uuid');
 const rimraf = require('rimraf');
+const { mainReloader, rendererReloader } = require('electron-hot-reload');
 
-// require('electron-reload')(__dirname, {
-//   electron: path.join(__dirname, 'node_modules', '.bin', 'electron')
-// });
+// const { preProcess } = require('./process/preprocess');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
-
 const defaultProps = {
   width: 1200,
   height: 800,
   show: false,
   webPreferences: {
-    nodeIntegration: true
+    nodeIntegration: true,
   }
 };
+
+const mainFile = path.join(app.getAppPath(), 'main.js');
+const rendererFile = path.join(app.getAppPath(), 'renderer', 'index.js');
+
+mainReloader([mainFile], undefined, (error, path) => {
+  console.log("It is a main's process hook!");
+});
+
+rendererReloader([rendererFile], undefined, (error, path) => {
+  console.log("It is a renderer's process hook!");
+});
 
 class Window extends BrowserWindow {
   constructor({ file, ...windowSettings }) {
@@ -37,7 +48,7 @@ class Window extends BrowserWindow {
 }
 
 const store = new Store();
-let mainWindow, command;
+let mainWindow, command, timestamp, retryFunction;
 
 function main() {
   mainWindow = new Window({
@@ -93,6 +104,12 @@ function main() {
     }
     mainWindow.webContents.send('primaryStatus', 'All files deleted');
   });
+
+  ipcMain.on('retry', () => {
+    if (retryFunction) {
+      retryFunction();
+    }
+  });
 }
 
 app.on('ready', main);
@@ -109,6 +126,11 @@ app.on('window-all-closed', function () {
   }
   app.quit();
 });
+
+function retry(retryFn) {
+  mainWindow.webContents.send('showRetry');
+  retryFunction = retryFn;
+}
 
 function start() {
   preProcess();
@@ -148,6 +170,7 @@ function runAudio() {
   ffmpeg.ffprobe(audio, function (err, metadata) {
     if (err) {
       mainWindow.webContents.send('primaryStatus', err);
+      retry(runAudio);
       return;
     }
 
@@ -212,6 +235,7 @@ function processAudio() {
     beats.length
   );
 
+  timestamp = Date.now();
   makeRandom();
 }
 
@@ -233,14 +257,23 @@ function randomForFile(position, totalDuration) {
     return;
   }
 
+  const elapsed = Math.round((Date.now() - timestamp) / 1000);
+
   mainWindow.webContents.send(
     'primaryStatus',
     `Generating compilation ${position + 1}/${beats.length - 1}`
   );
 
+  mainWindow.webContents.send(
+    'secondaryStatus',
+    `Time elapsed ${elapsed}s`
+  );
+
   const file = sourceFiles[Math.floor(Math.random() * sourceFiles.length)];
 
   const diff = beats[position + 1] - totalDuration;
+
+  console.log('beats next position', beats[position + 1], 'total duration', totalDuration, 'diff', diff);
 
   if (diff <= 0) {
     randomForFile(position + 1, totalDuration);
@@ -256,17 +289,20 @@ function randomForFile(position, totalDuration) {
     const duration = metadata.format.duration;
     const start = randomBetween(0, duration);
 
-    console.log('start', start, file, saveFile);
-
     command = ffmpeg(file)
       .noAudio()
       .seekInput(start)
       .duration(diff)
       .videoBitrate(5000000)
+      // .inputOptions([
+      //   '-hwaccel', 'cuvid', '-vsync', '0', '-c:v', 'h264_cuvid'
+      // ])
       .outputOptions(
         [
           '-mbd', 'rd', '-trellis', '2', '-cmp', '2', '-subcmp', '2',
-          '-g', '100', '-f', 'mpeg'
+          '-g', '100',
+          // '-c:v', 'h264_nvenc',
+          '-f', 'mpeg'
         ]
       )
       .on('error', (err) => {
@@ -279,12 +315,10 @@ function randomForFile(position, totalDuration) {
       })
       .on('progress', (progress) => {
         console.log(`Processing: ${progress.percent}% done`);
-        mainWindow.webContents.send('secondaryStatus', '<br>');
+        // mainWindow.webContents.send('secondaryStatus', '<br>');
       })
       .on('end', () => {
         ffmpeg.ffprobe(saveFile, function (err, metadata) {
-          console.log('Analyzing', saveFile, metadata.format.size, metadata.format.duration);
-
           let newDuration = 0;
 
           if (err) {
@@ -296,6 +330,8 @@ function randomForFile(position, totalDuration) {
           } else {
             newDuration = metadata.format.duration;
           }
+
+          console.log('new duration', newDuration, 'next total duration', totalDuration + newDuration);
 
           // todo: dont increase diff if output is bad
           randomForFile(position + 1, totalDuration + newDuration);
@@ -382,6 +418,7 @@ function joinVideoAudio() {
       mainWindow.webContents.send(
         'primaryStatus', `An error occurred: ${err.message}`
       );
+      retry(joinVideoAudio);
     })
     .on('progress', (progress) => {
       console.log(`Processing: ${progress.percent}% done`);
@@ -411,13 +448,13 @@ function encode() {
     .videoCodec('libx264')
     .outputOptions(['-preset', 'ultrafast'])
     // todo variable final dimensions
-    .videoFilters('scale=w=1280:h=720:force_original_aspect_ratio=decrease')
-    .audioCodec('copy')
+    .videoFilters('scale=w=1280:h=720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2')
     .on('error', (err) => {
       console.log(`An error occurred: ${err.message}`);
       mainWindow.webContents.send(
         'primaryStatus', `An error occurred: ${err.message}`
       );
+      retry(encode);
     })
     .on('progress', (progress) => {
       console.log(`Processing: ${progress.percent}% done`);
@@ -457,3 +494,4 @@ function modifyFilename(file) {
 function randomBetween(min, max) {
   return Math.random() * (+max - +min) + +min;
 }
+
